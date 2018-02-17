@@ -26,6 +26,12 @@ you for a password.  If you're checking out via https, the underlying `git`
 program will likely prompt you for your password unless you have it stored
 via some Git credential helper.
 
+## Installation
+
+pymgit is on PyPi (https://pypi.python.org/pypi/pymgit)
+
+    pip install pymgit
+
 ## Command-line Arguments
 
 | Argument | Description | Type | Default Value |
