@@ -1,0 +1,9 @@
+---
+
+- src: git@github.com:watsonb/pymgit.git
+  version: develop
+  dest: /workspace/foo
+
+- src: git@github.com:watsonb/pymgit.git
+  version: master
+  dest: /workspace/bar
