@@ -16,6 +16,11 @@ path to clone the repository.  See in examples below.
 
 `python` and `git` installed on the machine that will run `pymgit`
 
+## Optional Requirements
+
+[git-run](https://www.npmjs.com/package/git-run) if you want to take advantage
+of `git-run` configuration file (.grconfig.json) generation.
+
 ## Assumptions
 
 You have already handled the storage of your repository credentials in some
@@ -37,9 +42,12 @@ pymgit is on PyPi (https://pypi.python.org/pypi/pymgit)
 | Argument | Description | Type | Default Value |
 |---|---|---|---|
 | `-r`,`--requirements` | The path to the requirements text file containing a list of the Git repos you want to clone | str | no default, this is required |
+| `-g`,`--gitrun` |Turn on the mode to produce a git-run .grconfig.json file|bool|false|
+| `-p`,`--gitrunconfigdir`|The directory to write .grconfig.json into|str|user home directory|
 | `-d`,`--debug` | Turn on more verbose debugging (not much of it really)|bool|false|
 | `-v`,`--version` | Display program version | N/A | None |
 | `-h`,`--help` | Display program help | N/A | None |
+
 
 ## Dependencies
 
@@ -52,6 +60,16 @@ None
 Run the program to clone all of the repos identified in ~/requirements.yml
 
     pymgit -r ~/requirements.yml
+
+Run the program to clone all of the repos identified in ~/requirements.yml and
+produce a `.grconfig.json` in the default location (user home diretory)
+
+    pymgit -r ~/requirements.yml -g
+
+Run the program to clone all of the repos identified in ~/requirements.yml and
+produce a `.grconfig.json` in a specified directory
+
+    pymgit -r ~/requirements.yml -g -p /somewhere/user/can/write
 
 Run the program and turn on debugging
 
@@ -68,6 +86,8 @@ Run the program with no arguments or the -h/--help option to display help
 
 ### Requirements File
 also see example_requirements.yml
+
+#### Standard (no `git-run` support)
 
     ---
 
@@ -90,6 +110,20 @@ After running the program with the above example, you should have:
 If these directories already exist and you run the program:
 - and the directory **IS** a Git repo --> smiply checks out the version
 - and the directory is **NOT** a Git repo --> asks you if you want to delete and clone
+
+#### With `git-run` support
+
+    ---
+
+    - src: git@github.com:watsonb/pymgit.git
+      version: develop
+      dest: /workspace/foo
+      tags: [python, pymgit, foo]
+
+    - src: git@github.com:watsonb/pymgit.git
+      version: master
+      dest: /workspace/bar
+      tags: [pymgit, bar]
 
 This program doesn't do any Git fetching, pushing, pulling (sorry).  Once you
 have cloned all of your repos, I highly recommend the NodeJS program `git-run`

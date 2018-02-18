@@ -4,6 +4,7 @@ import sys
 import logging
 import shutil
 import argparse
+import json
 
 #extras
 import git  #pip install GitPython
@@ -16,6 +17,9 @@ from termcolor import colored #pip install termcolor
 reload(sys)
 sys.setdefaultencoding("utf8")
 
+#get the user home directory
+user_home = os.environ["HOME"]
+
 # read input parameters
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawTextHelpFormatter,
@@ -26,6 +30,12 @@ and checkout specified version (e.g. branch or tag).
 examples:
   Clone all of the repositories specified in the requirements file
     pymgit -r ~/requirements.yml
+  Clone all of the repositories specified in the requirements file and debug
+    pymgit -r ~/requirements.yml -d
+  Clone all of the repositories specified in the requirements file and make a git-run config file in default location
+    pymgit -r ~/requirements.yml -g
+  Clone all of the repositories specified in the requirements file and make a git-run config in specified location
+    pymgit -r ~/requirements.yml -g -p /some/path/user/can/write
     
 """)
 
@@ -35,26 +45,45 @@ required = parser.add_argument_group('required arguments')
 optional = parser.add_argument_group('optional arguments')
 
 # required arguments
-required.add_argument('-r', '--requirements', help='Path to requirements file containing list of repos.\n  example: ~/requirements.yml', required = True)
+required.add_argument('-r', '--requirements',
+                      help='Path to requirements file containing list of repos.\n  example: ~/requirements.yml',
+                      required = True)
 
 #optional arguments
-optional.add_argument('-v', '--version', action='version', version='pymgit v0.1.0')
+#TODO: always update VERSION number, it is right -------------------------->HERE!<
+optional.add_argument('-v', '--version', action='version', version='pymgit v0.3.0')
+
 optional.add_argument('-d', '--debug', action='store_true', help='Turn on debugging (verbose) output')
+optional.add_argument('-g', '--gitrun', action='store_true',
+                      help='Do produce a git-run manifest/tag file (.grconfig.json)')
+optional.add_argument('-p', '--gitrunconfigdir',
+                      help='Which directory to write the .grconfig.json file.  Defaults to your home directory.',
+                      default=user_home)
 
 args = parser.parse_args()
 
 requirements = args.requirements
 debug = args.debug
+do_gr = args.gitrun
+gitrunconfigpath = os.path.join(args.gitrunconfigdir, '.grconfig.json')
+
+if do_gr:
+    gr_config_dict = {}
+    gr_config_dict['tags'] = {}
 
 if debug:
     # explicitly setup logging for enhanced GitPython output
     logging.basicConfig(level=logging.DEBUG)
     os.environ["GIT_PYTHON_TRACE"] = "full"
     print(os.environ["GIT_PYTHON_TRACE"])
+    print (gitrunconfigpath)
 else:
     # explicitly setup logging for enhanced GitPython output
     logging.basicConfig(level=logging.ERROR)
-    os.environ.pop("GIT_PYTHON_TRACE")
+    try:
+        os.environ.pop("GIT_PYTHON_TRACE")
+    except:
+        pass
 
 # use Colorama to make Termcolor work with Windows
 init()
@@ -132,17 +161,19 @@ def clone_and_checkout(src, path, version):
         print (colored("error cloning " + src, 'red', attrs=['bold']))
 
 class Repo(object):
-    def __init__( self, src, dest, version ):
+    def __init__( self, src, dest, version, tags = [] ):
         """
         A Git repository information object
 
         :param src: The source of the Git repository to clone
         :param dest: The destination on the file system to place the clone
         :param version: The branch/tag to checkout
+        :param tags: A list of git-run tags
         """
         self.src = src
         self.dest = dest
         self.version = version
+        self.tags = tags
 
 class Repos(object):
     def __init__( self, path ):
@@ -153,6 +184,21 @@ class Repos(object):
         """
         self.path = path
         self.repoList = []
+
+def add_tag_to_dict(tag, path):
+    """
+    Add a git-run tag to a dictionary to generate the .grconfig.json file
+
+    :param tag: the tage to add (str)
+    :param path: the path to the git repo associated with the tag (str)
+    :return: None
+    """
+    if tag in gr_config_dict['tags']:
+        gr_config_dict['tags'][tag].append(path)
+    else:
+        gr_config_dict['tags'][tag] = []
+        gr_config_dict['tags'][tag].append(path)
+
 
 def main():
 
@@ -169,16 +215,32 @@ def main():
 
     for req in reqs:
 
-        repo = Repo(req['src'], req['dest'], req['version'])
+        if do_gr:
+            repo = Repo(req['src'], req['dest'], req['version'], req['tags'])
+        else:
+            repo = Repo(req['src'], req['dest'], req['version'])
 
         if debug:
-            print (colored("repo.src = " + repo.src + " repo.dest = " + repo.dest + " repo.version = " + repo.version, 'grey', 'on_white'))
+            if do_gr:
+                print (colored("repo.src = " + repo.src \
+                               + " repo.dest = " + repo.dest \
+                               + " repo.version = " + repo.version\
+                               + " repo.tags = " + ' '.join(repo.tags), 'grey', 'on_white'))
+            else:
+                print (colored("repo.src = " + repo.src \
+                               + " repo.dest = " + repo.dest \
+                               + " repo.version = " + repo.version \
+                               ,'grey', 'on_white'))
 
         repos.repoList.append(repo)
 
     for r in repos.repoList:
         repoName = r.src.split('/')[-1].split('.')[0]
         repoPath = os.path.join(r.dest, repoName)
+
+        if do_gr:
+            for tag in r.tags:
+                add_tag_to_dict(tag, repoPath)
 
         if not os.path.exists( r.dest ):
             if debug:
@@ -187,7 +249,8 @@ def main():
 
         if os.path.exists(repoPath):
             if is_git_repo( repoPath ):
-                print (colored(repoPath, 'green', attrs=['bold']) + colored(" already exists and is a Git repository", 'white'))
+                print (colored(repoPath, 'green', attrs=['bold']) + \
+                       colored(" already exists and is a Git repository", 'white'))
                 checkout(repoPath, r.version)
                 print ('')
             else:
@@ -202,6 +265,10 @@ def main():
         else:
             clone_and_checkout(r.src, repoPath, r.version)
             print ('')
+
+    if do_gr:
+        with open(gitrunconfigpath,'w') as outfile:
+            json.dump(gr_config_dict, outfile, indent=4)
 
 if __name__ == "__main__":
     main()
