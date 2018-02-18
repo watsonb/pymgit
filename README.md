@@ -99,6 +99,30 @@ to manage the fetching, pushing, pulling, etc. https://www.npmjs.com/package/git
 
 MIT
 
+## Contributing
+
+1. Fork it
+1. Create your feature branch (`git checkout -b my-new-feature`)
+1. Commit your changes (`git commit -am 'Add some feature'`)
+1. Push to the branch (`git push origin my-new-feature`)
+1. Create new Pull Request
+
+## Building and Distributing
+
+```bash
+virtualenv venv_pymgit
+source venv_pymgit/bin/activate
+pip install GitPython PyYaml
+pip twine pyOpenSSL ndg-httpsclient pyasn1
+git clone git@github.com:watsonb/pymgit.git
+cd pymgit
+python setup.py clean
+python setup.py check
+python setup.py build
+python setup.py sdist
+twine upload dist/*
+```
+
 ## Authors
 
 | Author | E-mail | Note |

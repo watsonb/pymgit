@@ -1,10 +1,12 @@
 Version History
 
-Try to abide by Semantic Versioning (http://semver.org/spec/v2.0.0.html)
+Try to abide by [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
-Codenames will come from Pokemon characters because, you "gotta git 'em all"
+Codenames will come from [Pokemon characters](https://en.wikipedia.org/wiki/List_of_Pok%C3%A9mon) because, you **_"gotta git 'em all"_**
+
 
 |Version|Codename|Date|Notes|
 |---|---|---|---|
+|0.2.0|Charmander|2018-02-17|Enhanced output (color and GitPython debugging)
 |0.1.1|Pikachu|2018-02-17|Fixed name of dependencies so it will install PyYaml and GitPython|
 |0.1.0|Pikachu|2018-02-17|Initial Beta Release|
