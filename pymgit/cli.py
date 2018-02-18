@@ -1,10 +1,15 @@
+#built-ins
 import os
 import sys
-import git
-import urllib
-import yaml
+import logging
 import shutil
 import argparse
+
+#extras
+import git  #pip install GitPython
+import yaml #pip install PyYaml
+from colorama import init #pip install colorama
+from termcolor import colored #pip install termcolor
 
 # fix the ascii error, from:
 # http://mypy.pythonblogs.com/12_mypy/archive/1253_workaround_for_python_bug_ascii_codec_cant_encode_character_uxa0_in_position_111_ordinal_not_in_range128.html
@@ -40,6 +45,19 @@ args = parser.parse_args()
 
 requirements = args.requirements
 debug = args.debug
+
+if debug:
+    # explicitly setup logging for enhanced GitPython output
+    logging.basicConfig(level=logging.DEBUG)
+    os.environ["GIT_PYTHON_TRACE"] = "full"
+    print(os.environ["GIT_PYTHON_TRACE"])
+else:
+    # explicitly setup logging for enhanced GitPython output
+    logging.basicConfig(level=logging.ERROR)
+    os.environ.pop("GIT_PYTHON_TRACE")
+
+# use Colorama to make Termcolor work with Windows
+init()
 
 def is_git_repo(path):
     """
@@ -93,9 +111,9 @@ def checkout(path, version):
     repo = git.Git(path)
     try:
         repo.checkout(version)
-        print("checked out " + version)
+        print(colored("checked out ", 'white', attrs=['bold']) + colored(version, 'cyan', attrs=['bold']))
     except git.exc.GitCommandError:
-        print("there is no branch/tag named " + version)
+        print(colored("there is no branch/tag named " + version, 'red', attrs=['bold']))
 
 def clone_and_checkout(src, path, version):
     """
@@ -108,10 +126,10 @@ def clone_and_checkout(src, path, version):
     """
     try:
         git.Repo.clone_from(src, path)
-        print ("cloned " + src)
+        print (colored("cloned ", 'white', attrs=['bold']) + colored(src, 'yellow', attrs=['bold']))
         checkout(path, version)
     except git.exc.GitCommandError:
-        print ("error cloning " + src)
+        print (colored("error cloning " + src, 'red', attrs=['bold']))
 
 class Repo(object):
     def __init__( self, src, dest, version ):
@@ -141,20 +159,20 @@ def main():
     #instantiate Repos object with path to requirements YAML file
     repos = Repos(requirements)
     if debug:
-        print ( repos.path )
+        print (colored(repos.path, 'grey', 'on_white'))
 
     # open the YAML file
-    stream = open( repos.path , 'r')
+    stream = open(repos.path , 'r')
 
     #assign the yaml list to a list
-    reqs = yaml.load( stream )
+    reqs = yaml.load(stream)
 
     for req in reqs:
 
         repo = Repo(req['src'], req['dest'], req['version'])
 
         if debug:
-            print ("repo.src = " + repo.src + " repo.dest = " + repo.dest + " repo.version = " + repo.version)
+            print (colored("repo.src = " + repo.src + " repo.dest = " + repo.dest + " repo.version = " + repo.version, 'grey', 'on_white'))
 
         repos.repoList.append(repo)
 
@@ -164,23 +182,23 @@ def main():
 
         if not os.path.exists( r.dest ):
             if debug:
-                print (r.dest + " does not exist, creating...")
+                print (colored(r.dest + " does not exist, creating...", 'grey', 'on_white'))
             os.makedirs(r.dest)
 
         if os.path.exists(repoPath):
             if is_git_repo( repoPath ):
-                print (repoPath + " already exists and is a Git repository")
+                print (colored(repoPath, 'green', attrs=['bold']) + colored(" already exists and is a Git repository", 'white'))
                 checkout(repoPath, r.version)
                 print ('')
             else:
-                print (repoPath + " already exists and is NOT a Git repository")
+                print (colored(repoPath + " already exists and is NOT a Git repository", 'magenta', attrs=['bold']))
                 if yes_or_no("Shall I delete this directory and clone to it? (y/n): "):
-                    print ("Deleting " + repoPath)
+                    print (colored("Deleting " + repoPath, 'white', attrs=['bold']))
                     shutil.rmtree(repoPath)
                     clone_and_checkout(r.src, repoPath, r.version)
                     print ('')
                 else:
-                    print ("OK, skipping this one...")
+                    print (colored("OK, skipping this one...", 'green', attrs=['bold']))
         else:
             clone_and_checkout(r.src, repoPath, r.version)
             print ('')
