@@ -3,7 +3,9 @@
 - src: git@github.com:watsonb/pymgit.git
   version: develop
   dest: /workspace/foo
+  tags: [ python, pymgit, foo]
 
 - src: git@github.com:watsonb/pymgit.git
   version: master
   dest: /workspace/bar
+  tags: [ python, pymgit, bar]
