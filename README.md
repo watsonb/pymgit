@@ -124,6 +124,12 @@ If these directories already exist and you run the program:
       version: master
       dest: /workspace/bar
       tags: [pymgit, bar]
+      
+The above will perform identically to the previous example, but when the program is
+run with the "-g" option, it will create a `.grconfig.json` and will setup `git-run`
+tags using the tags specified in the requirements file above.
+
+## Other Notes
 
 This program doesn't do any Git fetching, pushing, pulling (sorry).  Once you
 have cloned all of your repos, I highly recommend the NodeJS program `git-run`
@@ -147,7 +153,7 @@ MIT
 virtualenv venv_pymgit
 source venv_pymgit/bin/activate
 pip install GitPython PyYaml
-pip twine pyOpenSSL ndg-httpsclient pyasn1
+pip install twine pyOpenSSL ndg-httpsclient pyasn1
 git clone git@github.com:watsonb/pymgit.git
 cd pymgit
 python setup.py clean
