@@ -45,6 +45,7 @@ pymgit is on PyPi (https://pypi.python.org/pypi/pymgit)
 | `-g`,`--gitrun` |Turn on the mode to produce a git-run .grconfig.json file|bool|false|
 | `-p`,`--gitrunconfigdir`|The directory to write .grconfig.json into|str|user home directory|
 | `-d`,`--debug` | Turn on more verbose debugging (not much of it really)|bool|false|
+| `-c`,`--checkout` | Force existing repos to checkout requirements file tag|bool|false|
 | `-v`,`--version` | Display program version | N/A | None |
 | `-h`,`--help` | Display program help | N/A | None |
 
@@ -70,6 +71,12 @@ Run the program to clone all of the repos identified in ~/requirements.yml and
 produce a `.grconfig.json` in a specified directory
 
     pymgit -r ~/requirements.yml -g -p /somewhere/user/can/write
+
+Run the program to clone all of the repositories specified in the requirements file and
+force existing repositories to checkout tag specified in requirements file
+
+    pymgit -r ~/requirements.yml -c
+
 
 Run the program and turn on debugging
 
@@ -168,4 +175,4 @@ twine upload dist/*
 | Author | E-mail | Note |
 |---|---|---|
 |Ben Watson|bwatson1979@gmail.com|Primary author|
-|Derek Halsey| hmd2473@gmail.com | Muse - via his `ansible-sc.py` and `wmachine` programs |
+|Derek Halsey|derek@dinohead.com|The OG Jinja Ninja|

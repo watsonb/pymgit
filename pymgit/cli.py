@@ -32,9 +32,14 @@ examples:
     pymgit -r ~/requirements.yml
   Clone all of the repositories specified in the requirements file and debug
     pymgit -r ~/requirements.yml -d
-  Clone all of the repositories specified in the requirements file and make a git-run config file in default location
+  Clone all of the repositories specified in the requirements file and make 
+  a git-run config file in default location
     pymgit -r ~/requirements.yml -g
-  Clone all of the repositories specified in the requirements file and make a git-run config in specified location
+  Clone all of the repositories specified in the requirements file and force
+  existing repositories to checkout tag specified in requirements file 
+    pymgit -r ~/requirements.yml -c
+  Clone all of the repositories specified in the requirements file and make a git-run
+  config in specified location
     pymgit -r ~/requirements.yml -g -p /some/path/user/can/write
     
 """)
@@ -51,8 +56,9 @@ required.add_argument('-r', '--requirements',
 
 #optional arguments
 #TODO: always update VERSION number, it is right -------------------------->HERE!<
-optional.add_argument('-v', '--version', action='version', version='pymgit v0.3.0')
-
+optional.add_argument('-v', '--version', action='version', version='pymgit v0.4.0 Tyrantrum')
+optional.add_argument('-c', '--checkout', action='store_true',
+                      help='Force existing repos to checkout tag in requirements file')
 optional.add_argument('-d', '--debug', action='store_true', help='Turn on debugging (verbose) output')
 optional.add_argument('-g', '--gitrun', action='store_true',
                       help='Do produce a git-run manifest/tag file (.grconfig.json)')
@@ -65,7 +71,9 @@ args = parser.parse_args()
 requirements = args.requirements
 debug = args.debug
 do_gr = args.gitrun
+do_checkout = args.checkout
 gitrunconfigpath = os.path.join(args.gitrunconfigdir, '.grconfig.json')
+
 
 if do_gr:
     gr_config_dict = {}
@@ -251,7 +259,8 @@ def main():
             if is_git_repo( repoPath ):
                 print (colored(repoPath, 'green', attrs=['bold']) + \
                        colored(" already exists and is a Git repository", 'white'))
-                checkout(repoPath, r.version)
+                if do_checkout:
+                    checkout(repoPath, r.version)
                 print ('')
             else:
                 print (colored(repoPath + " already exists and is NOT a Git repository", 'magenta', attrs=['bold']))
