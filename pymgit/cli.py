@@ -2,9 +2,10 @@
 import os
 import sys
 import logging
-import shutil
 import argparse
 import json
+import shutil
+import fnmatch
 
 #extras
 import git  #pip install GitPython
@@ -56,7 +57,7 @@ required.add_argument('-r', '--requirements',
 
 #optional arguments
 #TODO: always update VERSION number, it is right -------------------------->HERE!<
-optional.add_argument('-v', '--version', action='version', version='pymgit v0.4.0 Tyrantrum')
+optional.add_argument('-v', '--version', action='version', version='pymgit v0.5.0 Rampardos')
 optional.add_argument('-c', '--checkout', action='store_true',
                       help='Force existing repos to checkout tag in requirements file')
 optional.add_argument('-d', '--debug', action='store_true', help='Turn on debugging (verbose) output')
@@ -65,6 +66,11 @@ optional.add_argument('-g', '--gitrun', action='store_true',
 optional.add_argument('-p', '--gitrunconfigdir',
                       help='Which directory to write the .grconfig.json file.  Defaults to your home directory.',
                       default=user_home)
+optional.add_argument('-s', '--strip', action='store_true',
+                      help='DANGER: THERE BE DRAGONS HERE. Strips .git directory (and other related git files) \
+                      from existing and cloned repositories')
+optional.add_argument('-f', '--force', action='store_true',
+                      help='DANGER: THERE BE DRAGONS HERE. Will force pymgit to always overwrite existing directories.')
 
 args = parser.parse_args()
 
@@ -72,8 +78,16 @@ requirements = args.requirements
 debug = args.debug
 do_gr = args.gitrun
 do_checkout = args.checkout
+do_force = args.force
+do_strip = args.strip
 gitrunconfigpath = os.path.join(args.gitrunconfigdir, '.grconfig.json')
 
+strip_list = [
+    '.git*',
+    '*.md',
+    '.yamllint',
+    '.ansible-lint',
+]
 
 if do_gr:
     gr_config_dict = {}
@@ -161,15 +175,21 @@ def clone_and_checkout(src, path, version):
     :param version: The branch/tag to checkout
     :return: None
     """
-    try:
-        git.Repo.clone_from(src, path)
-        print (colored("cloned ", 'white', attrs=['bold']) + colored(src, 'yellow', attrs=['bold']))
-        checkout(path, version)
-    except git.exc.GitCommandError:
-        print (colored("error cloning " + src, 'red', attrs=['bold']))
+
+    for attempt in range(3):
+        try:
+            git.Repo.clone_from(src, path)
+            print (colored("cloned ", 'white', attrs=['bold']) + colored(src, 'green', attrs=['bold']))
+            checkout(path, version)
+        except:
+            print (colored("error cloning " + src + " trying again", 'yellow', attrs=['bold']))
+        else:
+            break
+    else:
+        print (colored("error cloning " + src + " moving on", 'red', attrs=['bold']))
 
 class Repo(object):
-    def __init__( self, src, dest, version, tags = [] ):
+    def __init__(self, src, dest, version, tags=[], name=None):
         """
         A Git repository information object
 
@@ -178,10 +198,15 @@ class Repo(object):
         :param version: The branch/tag to checkout
         :param tags: A list of git-run tags
         """
+
         self.src = src
-        self.dest = dest
         self.version = version
         self.tags = tags
+        if name is None:
+            self.dest = dest
+        else:
+            self.dest = dest + '/' + name
+        self.name = name
 
 class Repos(object):
     def __init__( self, path ):
@@ -210,10 +235,20 @@ def add_tag_to_dict(tag, path):
 
 def main():
 
+    if do_gr and do_strip:
+        print "It doesn't make sense to produce a git-run manifest and strip .git files from your repos"
+        sys.exit()
+
     #instantiate Repos object with path to requirements YAML file
     repos = Repos(requirements)
     if debug:
         print (colored(repos.path, 'grey', 'on_white'))
+
+    if do_force:
+        print 'Force Mode Enabled'
+
+    if do_strip:
+        print 'Strip Mode Enabled'
 
     # open the YAML file
     stream = open(repos.path , 'r')
@@ -224,9 +259,15 @@ def main():
     for req in reqs:
 
         if do_gr:
-            repo = Repo(req['src'], req['dest'], req['version'], req['tags'])
+            try:
+                repo = Repo(req['src'], req['dest'], req['version'], req['tags'], name=req['name'])
+            except:
+                repo = Repo(req['src'], req['dest'], req['version'], req['tags'])
         else:
-            repo = Repo(req['src'], req['dest'], req['version'])
+            try:
+                repo = Repo(req['src'], req['dest'], req['version'], name=req['name'])
+            except:
+                repo = Repo(req['src'], req['dest'], req['version'])
 
         if debug:
             if do_gr:
@@ -243,17 +284,28 @@ def main():
         repos.repoList.append(repo)
 
     for r in repos.repoList:
-        repoName = r.src.split('/')[-1].split('.')[0]
-        repoPath = os.path.join(r.dest, repoName)
+
+        if r.name is None:
+            repoName = r.src.split('/')[-1].split('.')[0]
+            repoPath = os.path.join(r.dest, repoName)
+        else:
+            repoPath = r.dest
+
+        seperator = '/'
+        repoDir = seperator.join(repoPath.split('/')[:-1])
 
         if do_gr:
             for tag in r.tags:
                 add_tag_to_dict(tag, repoPath)
 
-        if not os.path.exists( r.dest ):
+        if not os.path.exists( repoDir):
             if debug:
-                print (colored(r.dest + " does not exist, creating...", 'grey', 'on_white'))
-            os.makedirs(r.dest)
+                print (colored(repoDir + " does not exist, creating...", 'grey', 'on_white'))
+            os.makedirs(repoDir)
+
+        if do_force:
+            print (colored("Removing: " + repoPath, 'yellow', attrs=['bold']))
+            shutil.rmtree(repoPath, ignore_errors=True)
 
         if os.path.exists(repoPath):
             if is_git_repo( repoPath ):
@@ -274,6 +326,19 @@ def main():
         else:
             clone_and_checkout(r.src, repoPath, r.version)
             print ('')
+
+        if do_strip:
+             for pattern in strip_list:
+                 for root, dirnames, filenames in os.walk(repoPath):
+
+                     for dirname in fnmatch.filter(dirnames, pattern):
+                        print "removing " + os.path.join(root, dirname)
+                        shutil.rmtree(os.path.join(root, dirname), ignore_errors=True)
+
+                     for filename in fnmatch.filter(filenames, pattern):
+                         print "removing " + os.path.join(root, filename)
+                         os.remove(os.path.join(root, filename))
+        print
 
     if do_gr:
         with open(gitrunconfigpath,'w') as outfile:

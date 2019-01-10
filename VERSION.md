@@ -7,6 +7,7 @@ Codenames will come from [Pokemon characters](https://en.wikipedia.org/wiki/List
 
 |Version|Codename|Date|Notes|
 |---|---|---|---|
+|0.5.0|Rampardos|2018-11-13|Handle git clone errors by trying again, added force option, add strip option, and added ability to name destination repository directory|
 |0.4.0|Tyrantrum|2018-07-27|Added -c option to control whether existing repos checkout requirements tag|
 |0.3.0|Bulbasaur|2018-02-18|Now supports creating git-run .grconfig.json|
 |0.2.0|Charmander|2018-02-17|Enhanced output (color and GitPython debugging)|
