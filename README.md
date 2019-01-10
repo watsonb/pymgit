@@ -46,6 +46,8 @@ pymgit is on PyPi (https://pypi.python.org/pypi/pymgit)
 | `-p`,`--gitrunconfigdir`|The directory to write .grconfig.json into|str|user home directory|
 | `-d`,`--debug` | Turn on more verbose debugging (not much of it really)|bool|false|
 | `-c`,`--checkout` | Force existing repos to checkout requirements file tag|bool|false|
+| `-f`,`--force` | Force pymgit to overwrite existing directories|bool|false|
+| `-s`,`--checkout` | Strip git (and git-related) files from cloned repos|bool|false|
 | `-v`,`--version` | Display program version | N/A | None |
 | `-h`,`--help` | Display program help | N/A | None |
 
