@@ -33,9 +33,11 @@ via some Git credential helper.
 
 ## Installation
 
-pymgit is on PyPi (https://pypi.python.org/pypi/pymgit)
+pymgit is on [PyPi](https://pypi.python.org/pypi/pymgit)
 
-    pip install pymgit
+```bash
+pip install pymgit
+```
 
 ## Command-line Arguments
 
@@ -47,10 +49,9 @@ pymgit is on PyPi (https://pypi.python.org/pypi/pymgit)
 | `-d`,`--debug` | Turn on more verbose debugging (not much of it really)|bool|false|
 | `-c`,`--checkout` | Force existing repos to checkout requirements file tag|bool|false|
 | `-f`,`--force` | Force pymgit to overwrite existing directories|bool|false|
-| `-s`,`--checkout` | Strip git (and git-related) files from cloned repos|bool|false|
+| `-s`,`--strip` | Strip git (and git-related) files from cloned repos|bool|false|
 | `-v`,`--version` | Display program version | N/A | None |
 | `-h`,`--help` | Display program help | N/A | None |
-
 
 ## Dependencies
 
@@ -79,7 +80,6 @@ force existing repositories to checkout tag specified in requirements file
 
     pymgit -r ~/requirements.yml -c
 
-
 Run the program and turn on debugging
 
     pymgit -r ~/requirements.yml -d
@@ -94,46 +94,54 @@ Run the program with no arguments or the -h/--help option to display help
     pymgit -h
 
 ### Requirements File
-also see example_requirements.yml
+
+See [example_requirements.yml](example_requirements.yml)
 
 #### Standard (no `git-run` support)
 
-    ---
+```yaml
+---
 
-    - src: git@github.com:watsonb/pymgit.git
-      version: develop
-      dest: /workspace/foo
+- src: git@github.com:watsonb/pymgit.git
+  version: develop
+  dest: /workspace/foo
 
-    - src: git@github.com:watsonb/pymgit.git
-      version: master
-      dest: /workspace/bar
+- src: git@github.com:watsonb/pymgit.git
+  version: master
+  dest: /workspace/bar
+```
 
 Given the above, the program will checkout the pymgit source twice:
+
 - First, the develop branch to the path /workspace/foo
 - Second, the master branch to the path /workspace/bar
 
 After running the program with the above example, you should have:
+
 - /workspace/foo/pymgit (checked out to develop)
 - /workspace/bar/pymgit (checked out to master)
 
 If these directories already exist and you run the program:
+
 - and the directory **IS** a Git repo --> smiply checks out the version
 - and the directory is **NOT** a Git repo --> asks you if you want to delete and clone
 
 #### With `git-run` support
 
-    ---
+```yaml
+---
 
-    - src: git@github.com:watsonb/pymgit.git
-      version: develop
-      dest: /workspace/foo
-      tags: [python, pymgit, foo]
+- src: git@github.com:watsonb/pymgit.git
+  version: develop
+  dest: /workspace/foo
+  tags: [python, pymgit, foo]
 
-    - src: git@github.com:watsonb/pymgit.git
-      version: master
-      dest: /workspace/bar
-      tags: [pymgit, bar]
-      
+- src: git@github.com:watsonb/pymgit.git
+  version: master
+  dest: /workspace/bar
+  tags: [pymgit, bar]
+```
+
 The above will perform identically to the previous example, but when the program is
 run with the "-g" option, it will create a `.grconfig.json` and will setup `git-run`
 tags using the tags specified in the requirements file above.
@@ -141,8 +149,9 @@ tags using the tags specified in the requirements file above.
 ## Other Notes
 
 This program doesn't do any Git fetching, pushing, pulling (sorry).  Once you
-have cloned all of your repos, I highly recommend the NodeJS program `git-run`
-to manage the fetching, pushing, pulling, etc. https://www.npmjs.com/package/git-run
+have cloned all of your repos, I highly recommend the NodeJS program
+[git-run](https://www.npmjs.com/package/git-run) to manage the fetching,
+pushing, pulling, etc.
 
 ## License
 
@@ -163,6 +172,8 @@ virtualenv venv_pymgit
 source venv_pymgit/bin/activate
 pip install GitPython PyYaml
 pip install twine pyOpenSSL ndg-httpsclient pyasn1
+pip install colorama termcolor
+pip install future six
 git clone git@github.com:watsonb/pymgit.git
 cd pymgit
 python setup.py clean

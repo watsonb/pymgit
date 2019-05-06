@@ -30,7 +30,7 @@ class RunTests(Command):
 
 setup(
     name='pymgit',
-    version='0.5.0',
+    version='0.5.1',
     description= 'A command-line tool to clone multiple Git repositories and checkout specific branches/tags',
     long_description = 'A command-line tool to clone multiple Git repositories and checkout specific branches/tags',
     url='https://github.com/watsonb/pymgit',
@@ -55,7 +55,7 @@ setup(
     packages = find_packages(exclude=['docs', 'tests*']),
     # package_dir={'':''},
     #package_data={ '': ['fonts/*.ttf'], },
-    install_requires = ['PyYaml', 'GitPython', 'colorama', 'termcolor'],
+    install_requires = ['PyYaml', 'GitPython', 'colorama', 'termcolor', 'future', 'six'],
     extras_require = {
         'test': ['coverage', 'pytest', 'pytest-cov'],
     },
