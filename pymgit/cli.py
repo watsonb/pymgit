@@ -7,16 +7,28 @@ import json
 import shutil
 import fnmatch
 
+#Python3
+if sys.version[0] == '3':
+    from importlib import reload
+
 #extras
 import git  #pip install GitPython
 import yaml #pip install PyYaml
 from colorama import init #pip install colorama
 from termcolor import colored #pip install termcolor
 
+# Python 2/3
+# https://python-future.org/compatible_idioms.html
+import future        # pip install future
+import builtins      # pip install future
+import past          # pip install future
+import six           # pip install six
+
 # fix the ascii error, from:
 # http://mypy.pythonblogs.com/12_mypy/archive/1253_workaround_for_python_bug_ascii_codec_cant_encode_character_uxa0_in_position_111_ordinal_not_in_range128.html
-reload(sys)
-sys.setdefaultencoding("utf8")
+if sys.version[0] == '2':
+    reload(sys)
+    sys.setdefaultencoding("utf8")
 
 #get the user home directory
 user_home = os.environ["HOME"]
@@ -57,7 +69,7 @@ required.add_argument('-r', '--requirements',
 
 #optional arguments
 #TODO: always update VERSION number, it is right -------------------------->HERE!<
-optional.add_argument('-v', '--version', action='version', version='pymgit v0.5.0 Rampardos')
+optional.add_argument('-v', '--version', action='version', version='pymgit v0.5.1 Rampardos')
 optional.add_argument('-c', '--checkout', action='store_true',
                       help='Force existing repos to checkout tag in requirements file')
 optional.add_argument('-d', '--debug', action='store_true', help='Turn on debugging (verbose) output')
@@ -236,7 +248,7 @@ def add_tag_to_dict(tag, path):
 def main():
 
     if do_gr and do_strip:
-        print "It doesn't make sense to produce a git-run manifest and strip .git files from your repos"
+        print ("It doesn't make sense to produce a git-run manifest and strip .git files from your repos")
         sys.exit()
 
     #instantiate Repos object with path to requirements YAML file
@@ -245,16 +257,17 @@ def main():
         print (colored(repos.path, 'grey', 'on_white'))
 
     if do_force:
-        print 'Force Mode Enabled'
+        print ('Force Mode Enabled')
 
     if do_strip:
-        print 'Strip Mode Enabled'
+        print ('Strip Mode Enabled')
 
     # open the YAML file
     stream = open(repos.path , 'r')
 
-    #assign the yaml list to a list
-    reqs = yaml.load(stream)
+    # assign the yaml list to a list
+    # see https://github.com/yaml/pyyaml/wiki/PyYAML-yaml.load(input)-Deprecation
+    reqs = yaml.load(stream, Loader=yaml.FullLoader)
 
     for req in reqs:
 
@@ -332,13 +345,12 @@ def main():
                  for root, dirnames, filenames in os.walk(repoPath):
 
                      for dirname in fnmatch.filter(dirnames, pattern):
-                        print "removing " + os.path.join(root, dirname)
+                        print ("removing " + os.path.join(root, dirname))
                         shutil.rmtree(os.path.join(root, dirname), ignore_errors=True)
 
                      for filename in fnmatch.filter(filenames, pattern):
-                         print "removing " + os.path.join(root, filename)
+                         print ("removing " + os.path.join(root, filename))
                          os.remove(os.path.join(root, filename))
-        print
 
     if do_gr:
         with open(gitrunconfigpath,'w') as outfile:
