@@ -69,7 +69,7 @@ required.add_argument('-r', '--requirements',
 
 #optional arguments
 #TODO: always update VERSION number, it is right -------------------------->HERE!<
-optional.add_argument('-v', '--version', action='version', version='pymgit v0.5.1 Rampardos')
+optional.add_argument('-v', '--version', action='version', version='pymgit v0.6.0 Squirtle')
 optional.add_argument('-c', '--checkout', action='store_true',
                       help='Force existing repos to checkout tag in requirements file')
 optional.add_argument('-d', '--debug', action='store_true', help='Turn on debugging (verbose) output')
@@ -83,6 +83,8 @@ optional.add_argument('-s', '--strip', action='store_true',
                       from existing and cloned repositories')
 optional.add_argument('-f', '--force', action='store_true',
                       help='DANGER: THERE BE DRAGONS HERE. Will force pymgit to always overwrite existing directories.')
+optional.add_argument('-S', '--donotstripreadme', action='store_true',
+                      help="Don't strip the README.md file")
 
 args = parser.parse_args()
 
@@ -92,6 +94,7 @@ do_gr = args.gitrun
 do_checkout = args.checkout
 do_force = args.force
 do_strip = args.strip
+do_not_strip_readme = args.donotstripreadme
 gitrunconfigpath = os.path.join(args.gitrunconfigdir, '.grconfig.json')
 
 strip_list = [
@@ -349,8 +352,11 @@ def main():
                         shutil.rmtree(os.path.join(root, dirname), ignore_errors=True)
 
                      for filename in fnmatch.filter(filenames, pattern):
-                         print ("removing " + os.path.join(root, filename))
-                         os.remove(os.path.join(root, filename))
+                         if filename == 'README.md':
+                            pass
+                         else:
+                            print ("removing " + os.path.join(root, filename))
+                            os.remove(os.path.join(root, filename))
 
     if do_gr:
         with open(gitrunconfigpath,'w') as outfile:
