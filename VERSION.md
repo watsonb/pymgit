@@ -6,6 +6,7 @@ Codenames will come from [Pokemon characters](https://en.wikipedia.org/wiki/List
 
 |Version|Codename  |Date      |Notes|
 |:-----:|:--------:|:--------:|:----|
+|0.6.0  |Squirtle  |2021-01-22|Add command-line option to strip but ignore stripping README.md (for ansible collections)|
 |0.5.1  |Rampardos |2019-05-06|Python 2/3 compatibility, PyYAML deprecation, and doc fixes.|
 |0.5.0  |Rampardos |2018-11-13|Handle git clone errors by trying again, added force option, add strip option, and added ability to name destination repository directory|
 |0.4.0  |Tyrantrum |2018-07-27|Added -c option to control whether existing repos checkout requirements tag|

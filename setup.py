@@ -30,7 +30,7 @@ class RunTests(Command):
 
 setup(
     name='pymgit',
-    version='0.5.1',
+    version='0.6.0',
     description= 'A command-line tool to clone multiple Git repositories and checkout specific branches/tags',
     long_description = 'A command-line tool to clone multiple Git repositories and checkout specific branches/tags',
     url='https://github.com/watsonb/pymgit',
